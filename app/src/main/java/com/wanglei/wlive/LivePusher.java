@@ -3,7 +3,7 @@ package com.wanglei.wlive;
 import android.app.Activity;
 import android.view.SurfaceHolder;
 
-public class LivePusher {
+public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
     static {
         System.loadLibrary("native-lib");
@@ -17,7 +17,8 @@ public class LivePusher {
         native_init();
         videoLive = new VideoLive(this,activity, width,
                 height, bitrate, fps, cameraId);
-        audioLive = new AudioLive();
+        audioLive = new AudioLive(this);
+        audioLive.setOnAudioCaptureListener(this);
     }
 
     public void setPreviewDisplay(SurfaceHolder surfaceHolder) {
@@ -46,11 +47,19 @@ public class LivePusher {
         native_release();
     }
 
+    @Override
+    public void onAudioFrameCaptured(byte[] bytes) {
+        native_pushAudio(bytes);
+    }
+
     //
     private native void native_init();
     private native void native_start(String path);
     private native void native_stop();
     private native void native_release();
+    public native int getInputSamples();//获取编码器一次能输入数据的样本数
+    public native void native_setAudioEncInfo(int sampleRateInHz, int channels);
     public native void native_setVideoEncoderInfo(int width,int height,int fps, int bitrate);
     public native void native_pushVideo(byte[] data);
+    public native void native_pushAudio(byte[] data);
 }

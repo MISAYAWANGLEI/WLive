@@ -11,7 +11,7 @@
 
 SafeQueue<RTMPPacket *> packets;//存储已经编码后的数据
 VideoLive *videoLive = 0;
-AudioLive *audioLive = 0
+AudioLive *audioLive = 0;
 int isStart = 0;
 pthread_t pid_start;//从packets中取出stmp包发送
 
@@ -139,11 +139,9 @@ JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1setVideoEncoderInfo(JNIEnv *env, jobject instance,
                                                               jint width, jint height, jint fps,
                                                               jint bitrate) {
-
     if(videoLive){
         videoLive->openVideoEncodec(width,height,fps,bitrate);
     }
-
 }
 
 extern "C"
@@ -160,8 +158,40 @@ Java_com_wanglei_wlive_LivePusher_native_1pushVideo(JNIEnv *env, jobject instanc
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_com_wanglei_wlive_LivePusher_native_1pushAudio(JNIEnv *env, jobject instance,
+                                                    jbyteArray data_) {
+    if(!videoLive || !readyPushing){
+        return;
+    }
+    jbyte *data = env->GetByteArrayElements(data_, NULL);
+    audioLive->encodeData(data);
+    env->ReleaseByteArrayElements(data_, data, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1release(JNIEnv *env, jobject instance) {
 
     DELETE(videoLive);
     DELETE(audioLive);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_wanglei_wlive_LivePusher_getInputSamples(JNIEnv *env, jobject instance) {
+
+    if(audioLive){
+        audioLive->getInputSamples();
+    }
+    return -1;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_wanglei_wlive_LivePusher_native_1setAudioEncInfo(JNIEnv *env, jobject instance,
+                                                          jint sampleRateInHz, jint channels) {
+
+    if(audioLive){
+        audioLive->setAudioEncInfo(sampleRateInHz,channels);
+    }
 }
