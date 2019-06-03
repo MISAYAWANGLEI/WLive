@@ -128,11 +128,11 @@ void VideoLive::encodeData(int8_t *data) {
     //否则就用0x000001(一帧的一部分)。
     //00 00 00 01 或者 00 00 01分割
     for (int i = 0; i <pi_nal ; ++i) {
-        if(pp_nal[i].i_type = NAL_SPS){
+        if(pp_nal[i].i_type == NAL_SPS){
             sps_len = pp_nal[i].i_payload - 4;
             sps = (uint8_t *) malloc((size_t) (sps_len + 1));
             memcpy(sps,pp_nal[i].p_payload+4, (size_t) sps_len);
-        } else if(pp_nal[i].i_type = NAL_PPS){
+        } else if(pp_nal[i].i_type == NAL_PPS){
             pps_len = pp_nal[i].i_payload - 4;
             pps = (uint8_t *) malloc((size_t) (pps_len + 1));
             memcpy(pps,pp_nal[i].p_payload+4, (size_t) pps_len);

@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include "macro.h"
 #include "AudioLive.h"
+#include "CppCallJavaUtils.h"
 
 SafeQueue<RTMPPacket *> packets;//存储已经编码后的数据
 VideoLive *videoLive = 0;
@@ -17,6 +18,14 @@ pthread_t pid_start;//从packets中取出stmp包发送
 
 int readyPushing = 0;
 uint32_t start_time;
+
+JavaVM *javaVm = nullptr;
+CppCallJavaUtils *cppCallJavaUtils = 0;
+
+int JNI_OnLoad(JavaVM *vm, void *r) {
+    javaVm = vm;
+    return JNI_VERSION_1_6;
+}
 
 void releasePacketCallBack(RTMPPacket** packet){
     if (packet){
@@ -36,6 +45,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1init(JNIEnv *env, jobject instance) {
 
+    cppCallJavaUtils = new CppCallJavaUtils(javaVm, env, instance);
     videoLive = new VideoLive;
     videoLive->setVideoCallBack(callBack);
     audioLive = new AudioLive;
@@ -83,6 +93,10 @@ void * start(void* url){
     }
     //正常链接服务器，可以推流了
     readyPushing = 1;
+    if (cppCallJavaUtils){
+        cppCallJavaUtils->onPrepare(THREAD_CHILD);
+    }
+    //
     start_time = RTMP_GetTime();//记录开始推流时间
     packets.setWork(1);
     RTMPPacket *packet;

@@ -58,8 +58,10 @@ public class AudioLive {
     }
 
     public void release() {
-        mAudioRecord.release();
-        mAudioRecord = null;
+        if(mAudioRecord!=null){
+            mAudioRecord.release();
+            mAudioRecord = null;
+        }
     }
 
     private class AudioCaptureRunnable implements Runnable {

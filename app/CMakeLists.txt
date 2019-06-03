@@ -9,6 +9,7 @@ add_library(
         SHARED
         src/main/cpp/native-lib.cpp
         src/main/cpp/AudioLive.cpp
+        src/main/cpp/CppCallJavaUtils.cpp
         src/main/cpp/VideoLive.cpp)
 
 include_directories(src/main/cpp/include)

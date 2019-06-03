@@ -31,6 +31,10 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
     public void startLive(String path) {
         native_start(path);
+    }
+
+    //NDK回调java
+    public void onPrepare(){
         videoLive.startLive();
         audioLive.startLive();
     }

@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         PermissionGen.with(MainActivity.this)
                 .addRequestCode(100)
                 .permissions(
+                        Manifest.permission.RECORD_AUDIO,
                         Manifest.permission.CAMERA)
                 .request();
     }
