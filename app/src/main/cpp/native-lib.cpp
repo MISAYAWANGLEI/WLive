@@ -25,7 +25,7 @@ void releasePacketCallBack(RTMPPacket** packet){
     }
 }
 
-void videoCallBack(RTMPPacket* packet){
+void callBack(RTMPPacket* packet){
     if (packet){
         packet->m_nTimeStamp = RTMP_GetTime() - start_time;
         packets.push(packet);
@@ -37,8 +37,9 @@ JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1init(JNIEnv *env, jobject instance) {
 
     videoLive = new VideoLive;
-    videoLive->setVideoCallBack(videoCallBack);
+    videoLive->setVideoCallBack(callBack);
     audioLive = new AudioLive;
+    audioLive->setAudioCallBack(callBack);
     packets.setReleaseCallBack(releasePacketCallBack);
 }
 //释放内存
@@ -85,6 +86,8 @@ void * start(void* url){
     start_time = RTMP_GetTime();//记录开始推流时间
     packets.setWork(1);
     RTMPPacket *packet;
+    //第一个数据是发送aac解码数据包
+    callBack(audioLive->getAudioTag());
     while (readyPushing){//不断从队列取出数据进行发送
         packets.pop(packet);
         if (!isStart){
