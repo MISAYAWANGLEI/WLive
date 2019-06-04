@@ -11,14 +11,14 @@ CppCallJavaUtils::CppCallJavaUtils(JavaVM *vm, JNIEnv *env, jobject instance) {
     this->instance = env->NewGlobalRef(instance);
 
     jclass jclazz = env->GetObjectClass(instance);
-    onPrepareMethodID = env->GetMethodID(jclazz,"onPrepare","()V");
+    onPrepareMethodID = env->GetMethodID(jclazz,"onPrepare","(I)V");
 }
 
 CppCallJavaUtils::~CppCallJavaUtils() {
     env->DeleteGlobalRef(instance);
 }
 
-void CppCallJavaUtils::onPrepare(int threadID) {
+void CppCallJavaUtils::onPrepare(int threadID,int isSuccess) {
     if (threadID==THREAD_MAIN){
         env->CallVoidMethod(instance,onPrepareMethodID);
     } else{
@@ -26,7 +26,7 @@ void CppCallJavaUtils::onPrepare(int threadID) {
         if (vm->AttachCurrentThread(&env,0)!=JNI_OK){
             return;
         }
-        env->CallVoidMethod(instance,onPrepareMethodID);
+        env->CallVoidMethod(instance,onPrepareMethodID,isSuccess);
         vm->DetachCurrentThread();
     }
 }

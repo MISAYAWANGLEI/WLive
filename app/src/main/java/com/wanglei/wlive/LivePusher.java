@@ -2,6 +2,7 @@ package com.wanglei.wlive;
 
 import android.app.Activity;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
@@ -11,9 +12,11 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
     private AudioLive audioLive;
     private VideoLive videoLive;
+    private Activity activity;
 
     public LivePusher(Activity activity, int width, int height, int bitrate,
                       int fps, int cameraId) {
+        this.activity = activity;
         native_init();
         videoLive = new VideoLive(this,activity, width,
                 height, bitrate, fps, cameraId);
@@ -34,9 +37,18 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
     }
 
     //NDK回调java
-    public void onPrepare(){
-        videoLive.startLive();
-        audioLive.startLive();
+    public void onPrepare(int isSuccess){
+        if(isSuccess == 1){
+            videoLive.startLive();
+            audioLive.startLive();
+        }else {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(activity,"rtmp创建或者链接失败",Toast.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     public void stopLive(){

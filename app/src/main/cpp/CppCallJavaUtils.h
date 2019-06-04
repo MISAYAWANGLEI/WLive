@@ -12,7 +12,7 @@ private:
 public:
     CppCallJavaUtils(JavaVM *vm,JNIEnv *env,jobject instance);
     ~CppCallJavaUtils();
-    void onPrepare(int threadID);
+    void onPrepare(int threadID,int isSuccess);//0失败，1成功
 };
 
 #endif

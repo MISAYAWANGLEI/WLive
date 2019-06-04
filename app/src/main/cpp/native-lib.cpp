@@ -67,6 +67,10 @@ void * start(void* url){
     RTMP *rtmp = RTMP_Alloc();
     if (!rtmp){
         LOGE("rtmp创建失败");
+        //通知java层
+        if (cppCallJavaUtils){
+            cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
+        }
         release(rtmp,path);
         return 0;
     }
@@ -75,6 +79,10 @@ void * start(void* url){
     int ret = RTMP_SetupURL(rtmp,path);
     if(!ret){
         LOGE("rtmp设置地址失败:%s",path);
+        //通知java层
+        if (cppCallJavaUtils){
+            cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
+        }
         release(rtmp,path);
         return 0;
     }
@@ -82,19 +90,28 @@ void * start(void* url){
     ret = RTMP_Connect(rtmp,0);//连接服务器
     if(!ret){
         LOGE("rtmp链接地址失败:%s",path);
+        //通知java层
+        if (cppCallJavaUtils){
+            cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
+        }
         release(rtmp,path);
         return 0;
     }
     ret = RTMP_ConnectStream(rtmp,0);//创建一个链接流
     if(!ret){
         LOGE("rtmp链接流失败:%s",path);
+        //通知java层
+        if (cppCallJavaUtils){
+            cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
+        }
         release(rtmp,path);
         return 0;
     }
     //正常链接服务器，可以推流了
     readyPushing = 1;
+    //通知java层
     if (cppCallJavaUtils){
-        cppCallJavaUtils->onPrepare(THREAD_CHILD);
+        cppCallJavaUtils->onPrepare(THREAD_CHILD,1);
     }
     //
     start_time = RTMP_GetTime();//记录开始推流时间
