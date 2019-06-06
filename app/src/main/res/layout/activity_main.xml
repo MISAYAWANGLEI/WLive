@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
@@ -13,46 +12,51 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        app:layout_constraintDimensionRatio="3:4"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"/>
 
     <Button
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:id="@+id/switchcamera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="switchCamera"
-        android:text="切换摄像头" />
-
-    <Button
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/switchcamera"
+        app:layout_constraintLeft_toRightOf="@+id/stoplive"
         android:id="@+id/startlive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="startLive"
+        android:layout_marginTop="15dp"
         android:layout_marginLeft="15dp"
         android:text="开始直播" />
 
     <Button
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/startlive"
+        app:layout_constraintLeft_toLeftOf="parent"
         android:id="@+id/stoplive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="stopLive"
+        android:layout_marginTop="15dp"
         android:layout_marginLeft="15dp"
         android:text="停止直播" />
 
-    <Button
+    <ImageView
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:id="@+id/switchcamera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="15dp"
+        android:onClick="switchCamera"
+        android:background="@mipmap/camera_change"/>
+
+    <ImageView
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/surfaceView"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginBottom="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="takepic"
+        android:background="@mipmap/take_picture"
         android:layout_marginLeft="15dp"
         android:text="拍照" />
 

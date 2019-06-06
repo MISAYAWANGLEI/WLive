@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +27,7 @@ import kr.co.namee.permissiongen.PermissionFail;
 import kr.co.namee.permissiongen.PermissionGen;
 import kr.co.namee.permissiongen.PermissionSuccess;
 
-public class MainActivity extends AppCompatActivity implements SensorControler.CameraFocusListener {
+public class MainActivity extends Activity implements SensorControler.CameraFocusListener {
 
     static {
         System.loadLibrary("native-lib");
@@ -39,11 +40,11 @@ public class MainActivity extends AppCompatActivity implements SensorControler.C
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 设置无标题
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        // 设置全屏
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        // 设置无标题
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        // 设置全屏
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
         ivFoucView = findViewById(R.id.iv_focus);
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements SensorControler.C
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getPointerCount() == 1 && event.getAction() == MotionEvent.ACTION_DOWN) {
-                    startAutoFocus(event.getX(), event.getY());
+                    startAutoFocus(event.getRawX(), event.getRawY());
                 }
                 return true;
             }

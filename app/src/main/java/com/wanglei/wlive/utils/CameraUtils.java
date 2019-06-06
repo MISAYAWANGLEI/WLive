@@ -11,9 +11,12 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.text.format.DateFormat;
+import android.util.ArrayMap;
 import android.util.Log;
+import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -23,6 +26,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 /**
  * Camera操作的工具类：打开，关闭，切换摄像头等等
@@ -48,8 +53,8 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
     private CameraUtils(Activity activity, int cameraId, int width, int height) {
         mActivity = activity;
         mCameraId = cameraId;
-        mWidth = width;
-        mHeight = height;
+//        mWidth = width;
+//        mHeight = height;
     }
 
     public static CameraUtils getInstance(Activity activity,
@@ -106,6 +111,8 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
             //mWidth * mHeight
             //设置相机预览尺寸
             setPreviewSize(parameters);
+            //
+            test(parameters);
             //设置相机生成图片图像
             //parameters.setPictureSize();
             // 设置摄像头 图像传感器的角度、方向
@@ -127,6 +134,33 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void test(Camera.Parameters parameters) {
+        //key:比率 value:实际宽高  一个比率可能对应多个宽高值
+        ArrayMap<AspectRatio, SortedSet<Camera.Size>> mRatios = new ArrayMap<>();
+
+        //预览帧大小
+        for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
+
+        }
+
+        //拍摄图片大小
+        for (Camera.Size size : parameters.getSupportedPictureSizes()) {
+
+        }
+        int gcd = gcd(1280,720);
+        Log.d(TAG, "gcd->" +gcd);
+    }
+
+    //a>b 求最大公约数
+    private int gcd(int a, int b) {
+        while (b != 0) {
+            int c = b;
+            b = a % b;
+            a = c;
+        }
+        return a;
     }
 
     public interface TakePictureListener{
@@ -295,10 +329,11 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
      * @param parameters
      */
     private void setPreviewSize(Camera.Parameters parameters) {
+        Log.d(TAG, "控件宽高 ->" + mWidth + "x" + mHeight);
         //获取摄像头支持的宽、高
         List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
         Camera.Size size = supportedPreviewSizes.get(0);
-        Log.d(TAG, "当前设备支持的宽高->" + size.width + "x" + size.height);
+        Log.d(TAG, "当前设备支持的PreviewSize->" + size.width + "x" + size.height);
         //选择一个与设置的差距最小的支持分辨率
         int m = Math.abs(size.height * size.width - mWidth * mHeight);
         supportedPreviewSizes.remove(0);
@@ -306,7 +341,7 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
         //遍历
         while (iterator.hasNext()) {
             Camera.Size next = iterator.next();
-            Log.d(TAG, "当前设备支持的宽高->" + next.width + "x" + next.height);
+            Log.d(TAG, "当前设备支持的PreviewSize->" + next.width + "x" + next.height);
             int n = Math.abs(next.height * next.width - mWidth * mHeight);
             if (n < m) {
                 m = n;
@@ -336,6 +371,9 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        mWidth = width;
+        mHeight = height;
+        Log.d(TAG, "surfaceChanged ->" + width + "x" + height);
         //释放摄像头
         stopPreview();
         //开启摄像头
