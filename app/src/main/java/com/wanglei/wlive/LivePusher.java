@@ -34,6 +34,10 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
         videoLive.autoFacus();
     }
 
+    public int getCurrentCameraType(){
+        return videoLive.getCurrentCameraType();
+    }
+
     public void takePic(CameraUtils.TakePictureListener takePictureListener){
         videoLive.takePic(takePictureListener);
     }

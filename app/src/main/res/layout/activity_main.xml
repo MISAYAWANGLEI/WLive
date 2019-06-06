@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
     <SurfaceView
         android:id="@+id/surfaceView"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -16,7 +15,6 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 
     <Button
         app:layout_constraintTop_toTopOf="parent"
@@ -58,4 +56,12 @@
         android:layout_marginLeft="15dp"
         android:text="拍照" />
 
+    <ImageView
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/iv_focus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:src="@mipmap/image_focus"/>
 </android.support.constraint.ConstraintLayout>

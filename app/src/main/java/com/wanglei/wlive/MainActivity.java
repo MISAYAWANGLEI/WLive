@@ -1,6 +1,10 @@
 package com.wanglei.wlive;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +15,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements SensorControler.C
     static {
         System.loadLibrary("native-lib");
     }
-
+    private ImageView ivFoucView;
    private LivePusher livePusher;
    private SurfaceView surfaceView;
     //加速度传感器
@@ -41,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorControler.C
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
+        ivFoucView = findViewById(R.id.iv_focus);
         livePusher = new LivePusher(this, 720, 1280,
                 800_000, 30, Camera.CameraInfo.CAMERA_FACING_BACK);
         sensorControler = SensorControler.getInstance(this);
@@ -70,10 +76,45 @@ public class MainActivity extends AppCompatActivity implements SensorControler.C
             @SuppressWarnings("deprecation")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                livePusher.autoFacus();
-                return false;
+                if (event.getPointerCount() == 1 && event.getAction() == MotionEvent.ACTION_DOWN) {
+                    startAutoFocus(event.getX(), event.getY());
+                }
+                return true;
             }
         });
+    }
+
+    public void startAutoFocus(float x, float y) {
+        //后置摄像头才有对焦功能
+        if (livePusher != null && livePusher.getCurrentCameraType() == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            return;
+        }
+        if (x != -1 && y != -1) { //这里有一个对焦的动画
+            //设置位置和初始状态
+            ivFoucView.setTranslationX(x - (ivFoucView.getWidth()) / 2);
+            ivFoucView.setTranslationY(y - (ivFoucView.getWidth()) / 2);
+            ivFoucView.clearAnimation();
+
+            //执行动画
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(ivFoucView, "scaleX", 1.75f, 1.0f);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(ivFoucView, "scaleY", 1.75f, 1.0f);
+            AnimatorSet animSet = new AnimatorSet();
+            animSet.play(scaleX).with(scaleY);
+            animSet.setDuration(500);
+            animSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    ivFoucView.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    ivFoucView.setVisibility(View.GONE);
+                }
+            });
+            animSet.start();
+        }
+        livePusher.autoFacus();
     }
 
     @Override

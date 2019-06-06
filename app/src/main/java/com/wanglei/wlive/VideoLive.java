@@ -32,6 +32,10 @@ public class VideoLive implements CameraUtils.OnChangedSizeListener, CameraUtils
         cameraUtils.autoFocus();
     }
 
+    public int getCurrentCameraType(){
+        return cameraUtils.getCurrentCameraType();
+    }
+
     public void takePic(CameraUtils.TakePictureListener takePictureListener){
         cameraUtils.takePic(takePictureListener);
     }

@@ -60,6 +60,10 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
         return mInstance;
     }
 
+    public int getCurrentCameraType(){
+        return mCameraId;
+    }
+
     public void switchCamera() {
         if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
             mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
