@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
+import com.wanglei.wlive.utils.CameraUtils;
+
 public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
     static {
@@ -26,6 +28,14 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
     public void setPreviewDisplay(SurfaceHolder surfaceHolder) {
         videoLive.setPreviewDisplay(surfaceHolder);
+    }
+
+    public void autoFacus(){
+        videoLive.autoFacus();
+    }
+
+    public void takePic(CameraUtils.TakePictureListener takePictureListener){
+        videoLive.takePic(takePictureListener);
     }
 
     public void switchCamera() {
@@ -76,6 +86,7 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
     public native int getInputSamples();//获取编码器一次能输入数据的样本数
     public native void native_setAudioEncInfo(int sampleRateInHz, int channels);
     public native void native_setVideoEncoderInfo(int width,int height,int fps, int bitrate);
-    public native void native_pushVideo(byte[] data);
+    public native void native_pushVideo(byte[] nv21,
+                                        int width, int height, boolean needRotate, int degree);
     public native void native_pushAudio(byte[] data);
 }

@@ -4,6 +4,7 @@
 
 #include <malloc.h>
 #include "VideoLive.h"
+#include "WYuvUtils.h"
 
 
 VideoLive::VideoLive() {
@@ -95,16 +96,30 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
 /**
  * data是摄像头拍摄的图像数据为NV21格式，
  * X264需要i420格式，需要转换
- * @param data
+ * @param data 相机原样采集的nv21格式数据，未经任何处理
  */
-void VideoLive::encodeData(int8_t *data) {
+void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
+                           int degree) {
     pthread_mutex_lock(&mutex);
-    //nv21转i420->后期考虑改为libyuv转换
-    memcpy(pic_in->img.plane[0],data,ySize);//Y
-    for (int i = 0; i <uvSize ; ++i) {
-        *(pic_in->img.plane[1]+i) = *(data+ySize+i * 2+1);//U
-        *(pic_in->img.plane[2]+i) = *(data+ySize+i * 2);//v
+
+    int8_t *dst_i420_data = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
+    int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
+    WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
+    if(needRotate){
+        WYuvUtils::rotateI420(dst_i420_data,width,height,dst_i420_data_rotate,degree);
+        dst_i420_data = dst_i420_data_rotate;
     }
+    //
+    memcpy(pic_in->img.plane[0],dst_i420_data,ySize);//Y
+    memcpy(pic_in->img.plane[1],dst_i420_data+ySize,uvSize);//U
+    memcpy(pic_in->img.plane[2],dst_i420_data+ySize+uvSize,uvSize);//V
+    //释放内存
+    free(dst_i420_data);
+    free(dst_i420_data_rotate);
+//    for (int i = 0; i <uvSize ; ++i) {
+//        *(pic_in->img.plane[1]+i) = *(data+ySize+i * 2+1);//U
+//        *(pic_in->img.plane[2]+i) = *(data+ySize+i * 2);//v
+//    }
     pic_in->i_pts = index++;
     //编码出的数据(结构体数组)
     x264_nal_t *pp_nal;

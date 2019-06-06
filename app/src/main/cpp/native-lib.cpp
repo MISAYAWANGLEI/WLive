@@ -9,6 +9,7 @@
 #include "macro.h"
 #include "AudioLive.h"
 #include "CppCallJavaUtils.h"
+#include "WYuvUtils.h"
 
 SafeQueue<RTMPPacket *> packets;//存储已经编码后的数据
 VideoLive *videoLive = 0;
@@ -180,18 +181,6 @@ Java_com_wanglei_wlive_LivePusher_native_1setVideoEncoderInfo(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_wanglei_wlive_LivePusher_native_1pushVideo(JNIEnv *env, jobject instance,
-                                                    jbyteArray data_) {
-    if(!videoLive || !readyPushing){
-        return;
-    }
-    jbyte *data = env->GetByteArrayElements(data_, NULL);
-    videoLive->encodeData(data);
-    env->ReleaseByteArrayElements(data_, data, 0);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1pushAudio(JNIEnv *env, jobject instance,
                                                     jbyteArray data_) {
     if(!videoLive || !readyPushing){
@@ -228,4 +217,17 @@ Java_com_wanglei_wlive_LivePusher_native_1setAudioEncInfo(JNIEnv *env, jobject i
     if(audioLive){
         audioLive->setAudioEncInfo(sampleRateInHz,channels);
     }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_wanglei_wlive_LivePusher_native_1pushVideo(JNIEnv *env, jobject instance, jbyteArray nv21_,
+                                                    jint width, jint height, jboolean needRotate,
+                                                    jint degree) {
+    if(!videoLive || !readyPushing){
+        return;
+    }
+    jbyte *data = env->GetByteArrayElements(nv21_, NULL);
+    videoLive->encodeData(data,width,height,needRotate,degree);
+    env->ReleaseByteArrayElements(nv21_, data, 0);
+
 }

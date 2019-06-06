@@ -6,7 +6,7 @@ import android.view.SurfaceHolder;
 
 import com.wanglei.wlive.utils.CameraUtils;
 
-public class VideoLive implements CameraUtils.OnChangedSizeListener, Camera.PreviewCallback {
+public class VideoLive implements CameraUtils.OnChangedSizeListener, CameraUtils.cameraDataListener {
 
     private LivePusher mLivePusher;
     private CameraUtils cameraUtils;
@@ -19,13 +19,21 @@ public class VideoLive implements CameraUtils.OnChangedSizeListener, Camera.Prev
         this.mLivePusher = livePusher;
         this.mBitrate = bitrate;
         this.mFps = fps;
-        cameraUtils = new CameraUtils(activity,cameraId,width,height);
+        cameraUtils = CameraUtils.getInstance(activity,cameraId,width,height);
         cameraUtils.setPreviewCallback(this);
         cameraUtils.setOnChangedSizeListener(this);
     }
 
     public void setPreviewDisplay(SurfaceHolder surfaceHolder) {
         cameraUtils.setPreviewDisplay(surfaceHolder);
+    }
+
+    public void autoFacus(){
+        cameraUtils.autoFocus();
+    }
+
+    public void takePic(CameraUtils.TakePictureListener takePictureListener){
+        cameraUtils.takePic(takePictureListener);
     }
 
     public void switchCamera() {
@@ -46,17 +54,18 @@ public class VideoLive implements CameraUtils.OnChangedSizeListener, Camera.Prev
         mLivePusher.native_setVideoEncoderInfo(w, h, mFps, mBitrate);
     }
 
-    @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        if (isLiving) {
-            //将相机预览的数据进行编码
-            mLivePusher.native_pushVideo(data);
-        }
-    }
-
     public void release() {
         if(null!=cameraUtils){
             cameraUtils.release();
+        }
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] nv21,
+                               int width, int height, boolean needRotate, int degree) {
+        if (isLiving) {
+            //将相机预览的数据进行编码
+            mLivePusher.native_pushVideo(nv21,width,height,needRotate,degree);
         }
     }
 }

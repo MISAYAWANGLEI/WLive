@@ -47,4 +47,15 @@
         android:layout_marginLeft="15dp"
         android:text="停止直播" />
 
+    <Button
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="takepic"
+        android:layout_marginLeft="15dp"
+        android:text="拍照" />
+
 </android.support.constraint.ConstraintLayout>
