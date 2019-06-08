@@ -8,16 +8,12 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wanglei.wlive.utils.CameraUtils;
@@ -155,7 +151,7 @@ public class MainActivity extends Activity implements SensorControler.CameraFocu
 
 
     public void startLive(View view) {
-        livePusher.startLive("rtmp://localhost/myapp/mystream");
+        livePusher.startLive("rtmp://192.168.0.103/myapp/mystream");
     }
 
     public void stopLive(View view) {

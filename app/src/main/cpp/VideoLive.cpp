@@ -34,6 +34,7 @@ VideoLive::~VideoLive() {
 //打开X264编码器
 void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
     pthread_mutex_lock(&mutex);
+    LOGE("打开x264编码器开始");
     mWidth = width;
     mHeight = height;
     mFps = fps;
@@ -90,6 +91,7 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
     x264Codec = x264_encoder_open(&param);
     pic_in = new x264_picture_t;
     x264_picture_alloc(pic_in, X264_CSP_I420, width, height);
+    LOGE("打开x264编码器结束");
     pthread_mutex_unlock(&mutex);
 }
 
@@ -101,18 +103,23 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
 void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
                            int degree) {
     pthread_mutex_lock(&mutex);
-
+    LOGE("视频开始编码");
     int8_t *dst_i420_data = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
     if(needRotate){
         WYuvUtils::rotateI420(dst_i420_data,width,height,dst_i420_data_rotate,degree);
-        dst_i420_data = dst_i420_data_rotate;
     }
     //
-    memcpy(pic_in->img.plane[0],dst_i420_data,ySize);//Y
-    memcpy(pic_in->img.plane[1],dst_i420_data+ySize,uvSize);//U
-    memcpy(pic_in->img.plane[2],dst_i420_data+ySize+uvSize,uvSize);//V
+    if(needRotate){
+        memcpy(pic_in->img.plane[0],dst_i420_data_rotate,ySize);//Y
+        memcpy(pic_in->img.plane[1],dst_i420_data_rotate+ySize,uvSize);//U
+        memcpy(pic_in->img.plane[2],dst_i420_data_rotate+ySize+uvSize,uvSize);//V
+    } else{
+        memcpy(pic_in->img.plane[0],dst_i420_data,ySize);//Y
+        memcpy(pic_in->img.plane[1],dst_i420_data+ySize,uvSize);//U
+        memcpy(pic_in->img.plane[2],dst_i420_data+ySize+uvSize,uvSize);//V
+    }
     //释放内存
     free(dst_i420_data);
     free(dst_i420_data_rotate);
@@ -158,7 +165,7 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
             sendFrame(pp_nal[i].i_type,pp_nal[i].i_payload,pp_nal[i].p_payload);
         }
     }
-
+    LOGE("视频编码结束");
     pthread_mutex_unlock(&mutex);
 }
 

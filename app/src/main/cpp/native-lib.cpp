@@ -35,8 +35,17 @@ void releasePacketCallBack(RTMPPacket** packet){
     }
 }
 
+void releasePackets(RTMPPacket *&packet) {
+    if (packet) {
+        RTMPPacket_Free(packet);
+        delete packet;
+        packet = 0;
+    }
+}
+
 void callBack(RTMPPacket* packet){
     if (packet){
+        LOGE("packets.push(packet)");
         packet->m_nTimeStamp = RTMP_GetTime() - start_time;
         packets.push(packet);
     }
@@ -73,10 +82,11 @@ void * start(void* url){
             cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
         }
         release(rtmp,path);
+        isStart = 0;
         return 0;
     }
     RTMP_Init(rtmp);
-    rtmp->Link.timeout = 5;//5秒超时时间
+    rtmp->Link.timeout = 15;//5秒超时时间
     int ret = RTMP_SetupURL(rtmp,path);
     if(!ret){
         LOGE("rtmp设置地址失败:%s",path);
@@ -85,6 +95,7 @@ void * start(void* url){
             cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
         }
         release(rtmp,path);
+        isStart = 0;
         return 0;
     }
     RTMP_EnableWrite(rtmp);//开启写出数据模式，向服务器发送数据
@@ -96,6 +107,7 @@ void * start(void* url){
             cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
         }
         release(rtmp,path);
+        isStart = 0;
         return 0;
     }
     ret = RTMP_ConnectStream(rtmp,0);//创建一个链接流
@@ -106,6 +118,7 @@ void * start(void* url){
             cppCallJavaUtils->onPrepare(THREAD_CHILD,0);
         }
         release(rtmp,path);
+        isStart = 0;
         return 0;
     }
     //正常链接服务器，可以推流了
@@ -122,7 +135,7 @@ void * start(void* url){
     callBack(audioLive->getAudioTag());
     while (readyPushing){//不断从队列取出数据进行发送
         packets.pop(packet);
-        if (!isStart){
+        if (!readyPushing){
             break;
         }
         if(!packet){
@@ -134,6 +147,8 @@ void * start(void* url){
         if (!ret) {
             LOGE("发送数据失败");
             break;
+        } else{
+            LOGE("发送成功");
         }
     }
     isStart = 0;
@@ -164,9 +179,17 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1stop(JNIEnv *env, jobject instance) {
     readyPushing = 0;
-    packets.clear();
     packets.setWork(0);
     pthread_join(pid_start,0);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_wanglei_wlive_LivePusher_native_1release(JNIEnv *env, jobject instance) {
+
+    DELETE(videoLive);
+    DELETE(audioLive);
 }
 
 extern "C"
@@ -192,19 +215,11 @@ Java_com_wanglei_wlive_LivePusher_native_1pushAudio(JNIEnv *env, jobject instanc
 }
 
 extern "C"
-JNIEXPORT void JNICALL
-Java_com_wanglei_wlive_LivePusher_native_1release(JNIEnv *env, jobject instance) {
-
-    DELETE(videoLive);
-    DELETE(audioLive);
-}
-
-extern "C"
 JNIEXPORT jint JNICALL
 Java_com_wanglei_wlive_LivePusher_getInputSamples(JNIEnv *env, jobject instance) {
 
     if(audioLive){
-        audioLive->getInputSamples();
+        return audioLive->getInputSamples();
     }
     return -1;
 }
@@ -218,6 +233,7 @@ Java_com_wanglei_wlive_LivePusher_native_1setAudioEncInfo(JNIEnv *env, jobject i
         audioLive->setAudioEncInfo(sampleRateInHz,channels);
     }
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_wanglei_wlive_LivePusher_native_1pushVideo(JNIEnv *env, jobject instance, jbyteArray nv21_,

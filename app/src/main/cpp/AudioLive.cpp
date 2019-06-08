@@ -1,16 +1,23 @@
 
 #include <cstring>
 #include "AudioLive.h"
+#include "macro.h"
 
 AudioLive::AudioLive() {
 
 }
 
 AudioLive::~AudioLive() {
-
+    DELETE(outPutBuffer);
+    //释放编码器
+    if (audioCodec) {
+        faacEncClose(audioCodec);
+        audioCodec = 0;
+    }
 }
 
 void AudioLive::setAudioEncInfo(int samplesInHZ, int channels) {
+    LOGE("打开faac编码器");
     mChannels = channels;
     //inputSamples、一次最大能输入编码器的样本数量 也编码的数据的个数 (一个样本是16位 2字节)
     //maxOutputBytes、最大可能的输出数据  编码后的最大字节数
@@ -30,6 +37,7 @@ void AudioLive::setAudioEncInfo(int samplesInHZ, int channels) {
 
     //输出缓冲区 编码后的数据
     outPutBuffer = new u_char[maxOutputBytes];
+    LOGE("打开faac编码器结束");
 }
 
 unsigned long AudioLive::getInputSamples() {
@@ -65,6 +73,7 @@ RTMPPacket* AudioLive::getAudioTag() {
 }
 
 void AudioLive::encodeData(int8_t *data) {
+    LOGE("音频开始编码");
     //返回编码后数据字节的长度
     int bytelen = faacEncEncode(audioCodec, reinterpret_cast<int32_t *>(data), inputSamples, outPutBuffer,
                                 maxOutputBytes);
@@ -89,6 +98,7 @@ void AudioLive::encodeData(int8_t *data) {
         packet->m_nChannel = 0x11;
         packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
         callBack(packet);
+        LOGE("音频结束编码");
     }
 
 }

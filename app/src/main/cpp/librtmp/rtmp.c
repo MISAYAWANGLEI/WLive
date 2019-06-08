@@ -807,15 +807,6 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
   r->m_sb.sb_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (r->m_sb.sb_socket != -1)
     {
-        //设置超时时间
-        SET_RCVTIMEO(tv, r->Link.timeout);
-        if (setsockopt
-                (r->m_sb.sb_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)))
-        {
-            RTMP_Log(RTMP_LOGERROR, "%s, Setting socket timeout to %ds failed!",
-                     __FUNCTION__, r->Link.timeout);
-        }
-
       if (connect(r->m_sb.sb_socket, service, sizeof(struct sockaddr)) < 0)
 	{
 	  int err = GetSockError();
@@ -1391,7 +1382,7 @@ WriteN(RTMP *r, const char *buffer, int n)
 
 	  if (sockerr == EINTR && !RTMP_ctrlC)
 	    continue;
-	  //意外断网组织递归调用
+
 	  RTMP_Close(r);
 	  n = 1;
 	  break;
