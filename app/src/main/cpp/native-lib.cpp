@@ -155,7 +155,9 @@ void * start(void* url){
     readyPushing = 0;
     packets.setWork(0);
     packets.clear();
-    releasePacketCallBack(&packet);
+    if(packet){
+        releasePacketCallBack(&packet);
+    }
     release(rtmp,path);
     return 0;
 }
