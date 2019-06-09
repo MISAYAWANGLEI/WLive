@@ -1,7 +1,7 @@
 package com.wanglei.wlive;
 
 import android.app.Activity;
-import android.hardware.Camera;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.wanglei.wlive.utils.CameraUtils;
@@ -69,6 +69,7 @@ public class VideoLive implements CameraUtils.OnChangedSizeListener, CameraUtils
                                int width, int height, boolean needRotate, int degree) {
         if (isLiving) {
             //将相机预览的数据进行编码
+            Log.e("ffmpeg","VideoLive onPreviewFrame->"+nv21.length);
             mLivePusher.native_pushVideo(nv21,width,height,needRotate,degree);
         }
     }

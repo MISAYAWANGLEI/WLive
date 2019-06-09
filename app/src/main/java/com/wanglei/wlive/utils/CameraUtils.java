@@ -7,16 +7,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.text.format.DateFormat;
 import android.util.ArrayMap;
 import android.util.Log;
-import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.WindowManager;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -26,7 +23,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedMap;
 import java.util.SortedSet;
 
 /**
@@ -53,8 +49,8 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
     private CameraUtils(Activity activity, int cameraId, int width, int height) {
         mActivity = activity;
         mCameraId = cameraId;
-//        mWidth = width;
-//        mHeight = height;
+        mWidth = width;
+        mHeight = height;
     }
 
     public static CameraUtils getInstance(Activity activity,
@@ -371,8 +367,8 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        mWidth = width;
-        mHeight = height;
+        //mWidth = width;
+        //mHeight = height;
         Log.d(TAG, "surfaceChanged ->" + width + "x" + height);
         //释放摄像头
         stopPreview();
@@ -387,24 +383,30 @@ public class CameraUtils implements SurfaceHolder.Callback, Camera.PreviewCallba
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
+
+        boolean needRotate = false;
+        int degree = 0;
         switch (mRotation) {
             case Surface.ROTATION_0:
                 //rotation90(data);
                 if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     //后置摄像头顺时针旋转90度
-                    mPreviewCallback.onPreviewFrame(data,mWidth,mHeight,true,90);
+                    needRotate = true;
+                    degree = 90;
                 } else {
                     //逆时针旋转90度,相当于顺时针旋转270
-                    mPreviewCallback.onPreviewFrame(data,mWidth,mHeight,true,270);
+                    needRotate = true;
+                    degree = 270;
                 }
                 break;
             case Surface.ROTATION_90: // 横屏 左边是头部(home键在右边)
-                mPreviewCallback.onPreviewFrame(data,mWidth,mHeight,false,0);
                 break;
             case Surface.ROTATION_270:// 横屏 头部在右边
-                mPreviewCallback.onPreviewFrame(data,mWidth,mHeight,false,0);
                 break;
         }
+        Log.e("ffmpeg","CameraUtils onPreviewFrame->"+data.length);
+        mPreviewCallback.onPreviewFrame(data,mWidth,mHeight,
+                needRotate,degree);
         camera.addCallbackBuffer(buffer);
     }
 

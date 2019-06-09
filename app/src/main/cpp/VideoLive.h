@@ -29,7 +29,7 @@ private:
     x264_picture_t *pic_in = 0;
     videoCallBack callBack;
     void sendSpsPps(uint8_t *sps, uint8_t *pps, int len, int pps_len);
-    void sendFrame(int type, int payload, uint8_t *p_payload);
+    void sendFrame(int type, uint8_t *payload, int i_payload);
 };
 
 

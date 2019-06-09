@@ -33,27 +33,29 @@ VideoLive::~VideoLive() {
  */
 //打开X264编码器
 void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
+
     pthread_mutex_lock(&mutex);
-    LOGE("打开x264编码器开始");
     mWidth = width;
     mHeight = height;
     mFps = fps;
     mBitrate = bitrate;
     ySize = width * height;
-    uvSize = ySize / 4;
+    uvSize = (width >> 1) * (height >> 1);
     if (x264Codec) {
         x264_encoder_close(x264Codec);
         x264Codec = 0;
     }
     if (pic_in) {
         x264_picture_clean(pic_in);
-        delete pic_in;
-        pic_in = 0;
+        DELETE(pic_in);
     }
+
+
+    //打开x264编码器
     //x264编码器的属性
     x264_param_t param;
-    //2： 最快,直播设置为最快，这样就损失编码出视频质量，有得必有失
-    //3:  无延迟编码，还是为了快
+    //2： 最快
+    //3:  无延迟编码
     x264_param_default_preset(&param, "ultrafast", "zerolatency");
     //base_line 3.2 编码规格
     param.i_level_idc = 32;
@@ -62,7 +64,7 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
     param.i_width = width;
     param.i_height = height;
     //无b帧
-    param.i_bframe = 0;//B帧会导致解码慢，直播等实时互动业务不要B帧
+    param.i_bframe = 0;
     //参数i_rc_method表示码率控制，CQP(恒定质量)，CRF(恒定码率)，ABR(平均码率)
     param.rc.i_rc_method = X264_RC_ABR;
     //码率(比特率,单位Kbps)
@@ -71,6 +73,7 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
     param.rc.i_vbv_max_bitrate = bitrate / 1000 * 1.2;
     //设置了i_vbv_max_bitrate必须设置此参数，码率控制区大小,单位kbps
     param.rc.i_vbv_buffer_size = bitrate / 1000;
+
     //帧率
     param.i_fps_num = fps;
     param.i_fps_den = 1;
@@ -91,7 +94,6 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
     x264Codec = x264_encoder_open(&param);
     pic_in = new x264_picture_t;
     x264_picture_alloc(pic_in, X264_CSP_I420, width, height);
-    LOGE("打开x264编码器结束");
     pthread_mutex_unlock(&mutex);
 }
 
@@ -102,11 +104,48 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
  */
 void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
                            int degree) {
+//    pthread_mutex_lock(&mutex);
+//    //y数据
+//    memcpy(pic_in->img.plane[0], data, ySize);
+//    for (int i = 0; i < uvSize; ++i) {
+//        //u数据
+//        *(pic_in->img.plane[1] + i) = *(data + ySize + i * 2 + 1);
+//        *(pic_in->img.plane[2] + i) = *(data + ySize + i * 2);
+//    }
+//    //编码出来的数据  （帧数据）
+//    x264_nal_t *pp_nal;
+//    //编码出来有几个数据 （多少帧）
+//    int pi_nal;
+//    x264_picture_t pic_out;
+//    x264_encoder_encode(x264Codec, &pp_nal, &pi_nal, pic_in, &pic_out);
+//    //如果是关键帧 3
+//    int sps_len;
+//    int pps_len;
+//    uint8_t sps[100];
+//    uint8_t pps[100];
+//    for (int i = 0; i < pi_nal; ++i) {
+//        if (pp_nal[i].i_type == NAL_SPS) {
+//            //排除掉 h264的间隔 00 00 00 01
+//            sps_len = pp_nal[i].i_payload - 4;
+//            memcpy(sps, pp_nal[i].p_payload + 4, sps_len);
+//        } else if (pp_nal[i].i_type == NAL_PPS) {
+//            pps_len = pp_nal[i].i_payload - 4;
+//            memcpy(pps, pp_nal[i].p_payload + 4, pps_len);
+//            //pps肯定是跟着sps的
+//            sendSpsPps(sps, pps, sps_len, pps_len);
+//        } else {
+//            sendFrame(pp_nal[i].i_type, pp_nal[i].p_payload, pp_nal[i].i_payload);
+//        }
+//    }
+//    pthread_mutex_unlock(&mutex);
     pthread_mutex_lock(&mutex);
     LOGE("视频开始编码");
     int8_t *dst_i420_data = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
+
+    //needRotate = false;
+
     if(needRotate){
         WYuvUtils::rotateI420(dst_i420_data,width,height,dst_i420_data_rotate,degree);
     }
@@ -123,11 +162,12 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
     //释放内存
     free(dst_i420_data);
     free(dst_i420_data_rotate);
+//    memcpy(pic_in->img.plane[0], data, ySize);
 //    for (int i = 0; i <uvSize ; ++i) {
 //        *(pic_in->img.plane[1]+i) = *(data+ySize+i * 2+1);//U
 //        *(pic_in->img.plane[2]+i) = *(data+ySize+i * 2);//v
 //    }
-    pic_in->i_pts = index++;
+    //pic_in->i_pts = index++;
     //编码出的数据(结构体数组)
     x264_nal_t *pp_nal;
     int pi_nal;//数据个数
@@ -141,6 +181,8 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
     int sps_len, pps_len;
     uint8_t *sps;
     uint8_t *pps;
+    //uint8_t sps[100];
+    //uint8_t pps[100];
     // SPS和PPS为描述信息，通过解析可以得到视频的分辨率，码率等信息
     //一组帧(H264中叫做GOP)会优先收到SPS与PPS没有这信息，无法解析图像
     //SPS与PPS可定连续出现，并且所占内存比较小，一般就几个字节，可以在一个包内发送
@@ -159,10 +201,10 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
             pps = (uint8_t *) malloc((size_t) (pps_len + 1));
             memcpy(pps,pp_nal[i].p_payload+4, (size_t) pps_len);
             sendSpsPps(sps, pps, sps_len, pps_len);
-            free(sps);
-            free(pps);
+            //free(sps);
+            //free(pps);
         } else{//关键帧或者非关键帧
-            sendFrame(pp_nal[i].i_type,pp_nal[i].i_payload,pp_nal[i].p_payload);
+            sendFrame(pp_nal[i].i_type, pp_nal[i].p_payload, pp_nal[i].i_payload);
         }
     }
     LOGE("视频编码结束");
@@ -170,9 +212,11 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
 }
 
 void VideoLive::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int pps_len) {
+    //看表
+    int bodySize = 13 + sps_len + 3 + pps_len;
     RTMPPacket *packet = new RTMPPacket;
-    int bodysize = 13 + sps_len + 3 + pps_len;
-    RTMPPacket_Alloc(packet, bodysize);
+    //
+    RTMPPacket_Alloc(packet, bodySize);
     int i = 0;
     //固定头
     packet->m_body[i++] = 0x17;
@@ -191,15 +235,15 @@ void VideoLive::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int pps_len)
     packet->m_body[i++] = sps[3];
     packet->m_body[i++] = 0xFF;
 
-    //sps个数
+    //整个sps
     packet->m_body[i++] = 0xE1;
     //sps长度
     packet->m_body[i++] = (sps_len >> 8) & 0xff;
     packet->m_body[i++] = sps_len & 0xff;
-    //sps内容
     memcpy(&packet->m_body[i], sps, sps_len);
     i += sps_len;
-    //pps个数，长度以及内容
+
+    //pps
     packet->m_body[i++] = 0x01;
     packet->m_body[i++] = (pps_len >> 8) & 0xff;
     packet->m_body[i++] = (pps_len) & 0xff;
@@ -207,7 +251,7 @@ void VideoLive::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int pps_len)
 
     //视频
     packet->m_packetType = RTMP_PACKET_TYPE_VIDEO;
-    packet->m_nBodySize = bodysize;
+    packet->m_nBodySize = bodySize;
     //随意分配一个管道（尽量避开rtmp.c中使用的）
     packet->m_nChannel = 10;
     //sps pps没有时间戳
@@ -215,27 +259,29 @@ void VideoLive::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int pps_len)
     //不使用绝对时间
     packet->m_hasAbsTimestamp = 0;
     packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+
     callBack(packet);
 }
 
-void VideoLive::sendFrame(int type, int payload, uint8_t *p_payload) {
+void VideoLive::sendFrame(int type, uint8_t *payload, int i_payload) {
     //去掉 00 00 00 01 / 00 00 01
-    if (p_payload[2] == 0x00){
-        payload -= 4;
-        p_payload += 4;
-    } else if(p_payload[2] == 0x01){
-        payload -= 3;
-        p_payload += 3;
+    if (payload[2] == 0x00) {
+        i_payload -= 4;
+        payload += 4;
+    } else {
+        i_payload -= 3;
+        payload += 3;
     }
+    //看表
+    int bodySize = 9 + i_payload;
     RTMPPacket *packet = new RTMPPacket;
-    int bodysize = 9 + payload;
-    RTMPPacket_Alloc(packet, bodysize);
-    RTMPPacket_Reset(packet);
+    //
+    RTMPPacket_Alloc(packet, bodySize);
 
-    if (type == NAL_SLICE_IDR) {//关键帧
+    packet->m_body[0] = 0x27;
+    if(type == NAL_SLICE_IDR){
         packet->m_body[0] = 0x17;
-    } else{//非关键帧
-        packet->m_body[0] = 0x27;
+        LOGE("关键帧");
     }
     //类型
     packet->m_body[1] = 0x01;
@@ -243,17 +289,17 @@ void VideoLive::sendFrame(int type, int payload, uint8_t *p_payload) {
     packet->m_body[2] = 0x00;
     packet->m_body[3] = 0x00;
     packet->m_body[4] = 0x00;
-    //数据长度4个字节
-    packet->m_body[5] = (payload >> 24) & 0xff;
-    packet->m_body[6] = (payload >> 16) & 0xff;
-    packet->m_body[7] = (payload >> 8) & 0xff;
-    packet->m_body[8] = (payload) & 0xff;
+    //数据长度 int 4个字节
+    packet->m_body[5] = (i_payload >> 24) & 0xff;
+    packet->m_body[6] = (i_payload >> 16) & 0xff;
+    packet->m_body[7] = (i_payload >> 8) & 0xff;
+    packet->m_body[8] = (i_payload) & 0xff;
 
     //图片数据
-    memcpy(&packet->m_body[9],p_payload,  payload);
+    memcpy(&packet->m_body[9], payload, i_payload);
 
     packet->m_hasAbsTimestamp = 0;
-    packet->m_nBodySize = bodysize;
+    packet->m_nBodySize = bodySize;
     packet->m_packetType = RTMP_PACKET_TYPE_VIDEO;
     packet->m_nChannel = 0x10;
     packet->m_headerType = RTMP_PACKET_SIZE_LARGE;

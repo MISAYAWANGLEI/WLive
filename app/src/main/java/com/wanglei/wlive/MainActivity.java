@@ -44,8 +44,8 @@ public class MainActivity extends Activity implements SensorControler.CameraFocu
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
         ivFoucView = findViewById(R.id.iv_focus);
-        livePusher = new LivePusher(this, 720, 1280,
-                800_000, 30, Camera.CameraInfo.CAMERA_FACING_BACK);
+        livePusher = new LivePusher(this, 1280, 720,
+                20000_000, 15, Camera.CameraInfo.CAMERA_FACING_BACK);
         sensorControler = SensorControler.getInstance(this);
         sensorControler.setCameraFocusListener(this);
         PermissionGen.with(MainActivity.this)

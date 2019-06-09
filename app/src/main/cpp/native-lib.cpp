@@ -45,7 +45,7 @@ void releasePackets(RTMPPacket *&packet) {
 
 void callBack(RTMPPacket* packet){
     if (packet){
-        LOGE("packets.push(packet)");
+        //LOGE("packets.push(packet)");
         packet->m_nTimeStamp = RTMP_GetTime() - start_time;
         packets.push(packet);
     }
@@ -86,7 +86,7 @@ void * start(void* url){
         return 0;
     }
     RTMP_Init(rtmp);
-    rtmp->Link.timeout = 15;//5秒超时时间
+    rtmp->Link.timeout = 5;//5秒超时时间
     int ret = RTMP_SetupURL(rtmp,path);
     if(!ret){
         LOGE("rtmp设置地址失败:%s",path);

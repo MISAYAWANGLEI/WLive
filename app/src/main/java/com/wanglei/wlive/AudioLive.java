@@ -79,7 +79,6 @@ public class AudioLive {
                     Log.e(TAG, "run: ERROR_INVALID_OPERATION");
                 } else {
                     if (listener != null) {
-                        Log.e(TAG, "run: capture buffer length is " + result);
                         listener.onAudioFrameCaptured(buffer);
                     }
                 }
