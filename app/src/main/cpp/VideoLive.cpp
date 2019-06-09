@@ -144,7 +144,7 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
 
-    //needRotate = false;
+    needRotate = false;
 
     if(needRotate){
         WYuvUtils::rotateI420(dst_i420_data,width,height,dst_i420_data_rotate,degree);

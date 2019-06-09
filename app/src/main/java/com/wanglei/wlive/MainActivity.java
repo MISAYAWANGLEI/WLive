@@ -45,7 +45,7 @@ public class MainActivity extends Activity implements SensorControler.CameraFocu
         surfaceView = findViewById(R.id.surfaceView);
         ivFoucView = findViewById(R.id.iv_focus);
         livePusher = new LivePusher(this, 1280, 720,
-                20000_000, 15, Camera.CameraInfo.CAMERA_FACING_BACK);
+                2000_000, 24, Camera.CameraInfo.CAMERA_FACING_BACK);
         sensorControler = SensorControler.getInstance(this);
         sensorControler.setCameraFocusListener(this);
         PermissionGen.with(MainActivity.this)
@@ -151,7 +151,7 @@ public class MainActivity extends Activity implements SensorControler.CameraFocu
 
 
     public void startLive(View view) {
-        livePusher.startLive("rtmp://192.168.0.103/myapp/mystream");
+        livePusher.startLive("rtmp://192.168.31.195/myapp/mystream");
     }
 
     public void stopLive(View view) {
