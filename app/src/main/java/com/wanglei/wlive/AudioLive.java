@@ -21,8 +21,7 @@ public class AudioLive {
     public AudioLive(LivePusher livePusher){
         this.livePusher = livePusher;
         livePusher.native_setAudioEncInfo(DEFAULT_SAMPLE_RATE,1);
-        mAudioRecord = createAudioRecord(DEFAULT_SOURCE_MIC,
-                DEFAULT_SAMPLE_RATE, DEFAULT_CHANNEL, SIMPLE_FORMAT);
+        mAudioRecord = createAudioRecord(DEFAULT_SOURCE_MIC, DEFAULT_SAMPLE_RATE, DEFAULT_CHANNEL, SIMPLE_FORMAT);
     }
 
     private AudioRecord createAudioRecord(int audioSource, int simpleRate, int channels, int audioFormat) {
@@ -30,7 +29,7 @@ public class AudioLive {
         //获取一帧音频帧的大小：调用系统提供的方法即可
         int minBufferSize = AudioRecord.getMinBufferSize(simpleRate, channels, audioFormat);
         if (minBufferSize == AudioRecord.ERROR_BAD_VALUE) {
-            Log.e(TAG, "获取音频帧大小失败!");
+            Log.d(TAG, "获取音频帧大小失败!");
             return null;
         }
         int audioRecordBufferSize = minBufferSize * 2; //AudioRecord内部缓冲设置为4帧音频帧的大小句
@@ -40,7 +39,7 @@ public class AudioLive {
         AudioRecord audioRecord = new AudioRecord(audioSource,
                 simpleRate, channels, audioFormat, audioBufferSize);
         if (audioRecord.getState() == AudioRecord.STATE_UNINITIALIZED) {
-            Log.e(TAG, "初始化AudioRecord失败!");
+            Log.d(TAG, "初始化AudioRecord失败!");
             return null;
         }
         return audioRecord;
@@ -74,11 +73,12 @@ public class AudioLive {
             while (isLiving) {
                 int result = mAudioRecord.read(buffer, 0, buffer.length);
                 if (result == AudioRecord.ERROR_BAD_VALUE) {
-                    Log.e(TAG, "run: ERROR_BAD_VALUE");
+                    Log.d(TAG, "run: ERROR_BAD_VALUE");
                 } else if (result == AudioRecord.ERROR_INVALID_OPERATION) {
-                    Log.e(TAG, "run: ERROR_INVALID_OPERATION");
+                    Log.d(TAG, "run: ERROR_INVALID_OPERATION");
                 } else {
                     if (listener != null) {
+                        Log.d(TAG, "run: capture buffer length is " + result);
                         listener.onAudioFrameCaptured(buffer);
                     }
                 }

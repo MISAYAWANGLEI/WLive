@@ -1,10 +1,12 @@
 package com.wanglei.wlive;
 
 import android.app.Activity;
+import android.hardware.Camera;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
-import com.wanglei.wlive.utils.CameraUtils;
+import com.wanglei.cameralibrary.CameraView;
 
 public class LivePusher implements AudioLive.OnAudioCaptureListener {
 
@@ -13,39 +15,24 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
     }
 
     private AudioLive audioLive;
-    private VideoLive videoLive;
     private Activity activity;
+    private int mBitrate;
+    private int mFps;
+    private boolean isLiving;
+    private int mWidth;
+    private int mHeight;
 
-    public LivePusher(Activity activity, int width, int height, int bitrate,
-                      int fps, int cameraId) {
+    public LivePusher(Activity activity, int bitrate,
+                      int fps) {
         this.activity = activity;
+        this.mBitrate = bitrate;
+        this.mFps = fps;
         native_init();
-        videoLive = new VideoLive(this,activity, width,
-                height, bitrate, fps, cameraId);
         audioLive = new AudioLive(this);
         audioLive.setOnAudioCaptureListener(this);
     }
 
-    public void setPreviewDisplay(SurfaceHolder surfaceHolder) {
-        videoLive.setPreviewDisplay(surfaceHolder);
-    }
-
-    public void autoFacus(){
-        videoLive.autoFacus();
-    }
-
-    public int getCurrentCameraType(){
-        return videoLive.getCurrentCameraType();
-    }
-
-    public void takePic(CameraUtils.TakePictureListener takePictureListener){
-        videoLive.takePic(takePictureListener);
-    }
-
-    public void switchCamera() {
-        videoLive.switchCamera();
-    }
-
+    //开始直播：推送数据
     public void startLive(String path) {
         native_start(path);
     }
@@ -53,7 +40,7 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
     //NDK回调java
     public void onPrepare(int isSuccess){
         if(isSuccess == 1){
-            videoLive.startLive();
+            isLiving = true;
             audioLive.startLive();
         }else {
             activity.runOnUiThread(new Runnable() {
@@ -65,16 +52,48 @@ public class LivePusher implements AudioLive.OnAudioCaptureListener {
         }
     }
 
+    //停止直播
     public void stopLive(){
-        videoLive.stopLive();
+        isLiving = false;
         audioLive.stopLive();
         native_stop();
     }
 
     public void release(){
-        videoLive.release();
         audioLive.release();
         native_release();
+    }
+
+    public void onPreviewSizeConfirm(int w, int h) {
+        //初始化编码器
+        mWidth = w;
+        mHeight = h;
+        native_setVideoEncoderInfo(w, h, mFps, mBitrate);
+    }
+
+    private boolean needRotate = false;
+    private int degree = 0;
+    public void onPreviewFrame(byte[] nv21, CameraView mCameraView) {
+        if (isLiving) {
+            int mRotation = mCameraView.getCameraOrientation();//角度
+            int mCameraId = mCameraView.getFacing();//前置还是后置摄像头
+            switch (mRotation) {
+                case Surface.ROTATION_0:
+                    //rotation90(data);
+                    if (mCameraId == CameraView.FACING_BACK) {
+                        //后置摄像头顺时针旋转90度
+                        needRotate = true;
+                        degree = 90;
+                    } else {
+                        //逆时针旋转90度,相当于顺时针旋转270
+                        needRotate = true;
+                        degree = 270;
+                    }
+                    break;
+            }
+            //将相机预览的数据进行编码
+            native_pushVideo(nv21,mWidth,mHeight,needRotate,degree);
+        }
     }
 
     @Override
