@@ -21,7 +21,6 @@ import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.support.v4.util.SparseArrayCompat;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.wanglei.cameralibrary.base.AspectRatio;
@@ -332,7 +331,8 @@ public class Camera1 extends CameraViewImpl implements Camera.PreviewCallback {
         mCallback.onCameraOpened();
     }
 
-    private AspectRatio chooseAspectRatio() {
+
+    private AspectRatio choosePreviewAspectRatio() {
         AspectRatio r = null;
         for (AspectRatio ratio : mPreviewSizes.ratios()) {
             r = ratio;
@@ -342,11 +342,23 @@ public class Camera1 extends CameraViewImpl implements Camera.PreviewCallback {
         }
         return r;
     }
+
+    private AspectRatio choosePicAspectRatio() {
+        AspectRatio r = null;
+        for (AspectRatio ratio : mPictureSizes.ratios()) {
+            r = ratio;
+            if (ratio.equals(Constants.DEFAULT_ASPECT_RATIO)) {
+                return ratio;
+            }
+        }
+        return r;
+    }
+
     private byte[] buffer;
     void adjustCameraParameters() {
         SortedSet<Size> sizes = mPreviewSizes.sizes(mAspectRatio);
         if (sizes == null) { // Not supported
-            mAspectRatio = chooseAspectRatio();
+            mAspectRatio = choosePreviewAspectRatio();
             sizes = mPreviewSizes.sizes(mAspectRatio);
         }
         //预览尺寸选择符合比率的尺寸集合中刚好比预览控件宽高均大一些的
@@ -355,7 +367,12 @@ public class Camera1 extends CameraViewImpl implements Camera.PreviewCallback {
         // Always re-apply camera parameters
         // Largest picture size in this ratio
         //拍摄帧往往选择尺寸最大的，那样拍摄的图片更清楚
-        final Size pictureSize = mPictureSizes.sizes(mAspectRatio).last();
+        SortedSet<Size> picSizes = mPictureSizes.sizes(mAspectRatio);
+        if (picSizes == null){
+            AspectRatio mPicAspectRatio = choosePicAspectRatio();
+            picSizes = mPictureSizes.sizes(mPicAspectRatio);
+        }
+        final Size pictureSize =picSizes.last();
         if (mShowingPreview) {
             mCamera.stopPreview();
         }

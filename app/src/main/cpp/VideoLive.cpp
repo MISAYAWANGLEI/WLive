@@ -49,8 +49,6 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
         x264_picture_clean(pic_in);
         DELETE(pic_in);
     }
-
-
     //打开x264编码器
     //x264编码器的属性
     x264_param_t param;
@@ -111,7 +109,6 @@ void VideoLive::encodeData(int8_t *data,int src_length,int width, int height,
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     //NV21(I420SP)->I420P
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
-
 
     //needRotate = false;
     if(needRotate){
