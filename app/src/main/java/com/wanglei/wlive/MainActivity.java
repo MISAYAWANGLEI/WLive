@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity
             actionBar.setDisplayShowTitleEnabled(false);
         }
         //
-        livePusher = new LivePusher(this,1000_000, 25);
+        livePusher = new LivePusher(this,5000_000, 25);
         sensorControler = SensorControler.getInstance(this);
         sensorControler.setCameraFocusListener(this);
         PermissionGen.with(MainActivity.this)
