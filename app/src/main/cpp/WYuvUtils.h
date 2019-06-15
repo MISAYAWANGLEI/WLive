@@ -32,7 +32,7 @@ public:
      * @param top
      */
     static void cropYUV(signed char *src_data, int src_length,int width, int height,
-            signed char *dst_i420_data,int dst_width, int dst_height,int left,int top);
+            signed char *dst_i420_data,int dst_width, int dst_height,int left,int top,int degree);
 };
 
 

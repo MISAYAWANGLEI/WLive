@@ -102,50 +102,18 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
  * X264需要i420格式，需要转换
  * @param data 相机原样采集的nv21格式数据，未经任何处理
  */
-void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
-                           int degree) {
-//    pthread_mutex_lock(&mutex);
-//    //y数据
-//    memcpy(pic_in->img.plane[0], data, ySize);
-//    for (int i = 0; i < uvSize; ++i) {
-//        //u数据
-//        *(pic_in->img.plane[1] + i) = *(data + ySize + i * 2 + 1);
-//        *(pic_in->img.plane[2] + i) = *(data + ySize + i * 2);
-//    }
-//    //编码出来的数据  （帧数据）
-//    x264_nal_t *pp_nal;
-//    //编码出来有几个数据 （多少帧）
-//    int pi_nal;
-//    x264_picture_t pic_out;
-//    x264_encoder_encode(x264Codec, &pp_nal, &pi_nal, pic_in, &pic_out);
-//    //如果是关键帧 3
-//    int sps_len;
-//    int pps_len;
-//    uint8_t sps[100];
-//    uint8_t pps[100];
-//    for (int i = 0; i < pi_nal; ++i) {
-//        if (pp_nal[i].i_type == NAL_SPS) {
-//            //排除掉 h264的间隔 00 00 00 01
-//            sps_len = pp_nal[i].i_payload - 4;
-//            memcpy(sps, pp_nal[i].p_payload + 4, sps_len);
-//        } else if (pp_nal[i].i_type == NAL_PPS) {
-//            pps_len = pp_nal[i].i_payload - 4;
-//            memcpy(pps, pp_nal[i].p_payload + 4, pps_len);
-//            //pps肯定是跟着sps的
-//            sendSpsPps(sps, pps, sps_len, pps_len);
-//        } else {
-//            sendFrame(pp_nal[i].i_type, pp_nal[i].p_payload, pp_nal[i].i_payload);
-//        }
-//    }
-//    pthread_mutex_unlock(&mutex);
+void VideoLive::encodeData(int8_t *data,int src_length,int width, int height,
+        bool needRotate,int degree) {
+    //
     pthread_mutex_lock(&mutex);
     LOGE("视频开始编码");
     int8_t *dst_i420_data = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
+    //NV21(I420SP)->I420P
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
 
-    needRotate = false;
 
+    //needRotate = false;
     if(needRotate){
         WYuvUtils::rotateI420(dst_i420_data,width,height,dst_i420_data_rotate,degree);
     }
@@ -167,7 +135,7 @@ void VideoLive::encodeData(int8_t *data,int width, int height, bool needRotate,
 //        *(pic_in->img.plane[1]+i) = *(data+ySize+i * 2+1);//U
 //        *(pic_in->img.plane[2]+i) = *(data+ySize+i * 2);//v
 //    }
-    //pic_in->i_pts = index++;
+    pic_in->i_pts = index++;
     //编码出的数据(结构体数组)
     x264_nal_t *pp_nal;
     int pi_nal;//数据个数

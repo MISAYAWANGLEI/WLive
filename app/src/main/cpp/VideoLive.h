@@ -14,7 +14,7 @@ public:
     ~VideoLive();
     void setVideoCallBack(videoCallBack callBack1);
     void openVideoEncodec(int width, int height, int fps, int bitrate);
-    void encodeData(int8_t *data,int width, int height, bool needRotate,
+    void encodeData(int8_t *data,int src_length,int width, int height, bool needRotate,
                     int degree);
 private:
     pthread_mutex_t mutex;

@@ -1,9 +1,7 @@
 package com.wanglei.wlive;
 
 import android.app.Activity;
-import android.hardware.Camera;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.widget.Toast;
 
 import com.wanglei.cameralibrary.CameraView;

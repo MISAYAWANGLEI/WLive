@@ -111,16 +111,6 @@ void WYuvUtils::rotateI420(signed char *src_i420_data, int width,
                            (uint8_t *) dst_i420_v_data, height >> 1,
                            width, height,
                            (libyuv::RotationMode) degree);
-    } else if (degree == libyuv::kRotate180){
-        //图像宽高不变
-        libyuv::I420Rotate((const uint8_t *) src_i420_y_data, width,
-                           (const uint8_t *) src_i420_u_data, width >> 1,
-                           (const uint8_t *) src_i420_v_data, width >> 1,
-                           (uint8_t *) dst_i420_y_data, width,
-                           (uint8_t *) dst_i420_u_data, width >> 1,
-                           (uint8_t *) dst_i420_v_data, width >> 1,
-                           width, height,
-                           (libyuv::RotationMode) degree);
     }
 }
 
@@ -148,7 +138,7 @@ void WYuvUtils::mirrorI420(signed char *src_i420_data,
 
 void WYuvUtils::cropYUV(signed char *src_data, int src_length,int width, int height,
         signed char *dst_i420_data,
-                        int dst_width, int dst_height, int left, int top) {
+                        int dst_width, int dst_height, int left, int top, int degree) {
 
     if (left + dst_width > width || top + dst_height > height) {
         return;
@@ -164,13 +154,14 @@ void WYuvUtils::cropYUV(signed char *src_data, int src_length,int width, int hei
     signed char *dst_i420_y_data = dst_i420_data;
     signed char *dst_i420_u_data = dst_i420_data + dst_i420_y_size;
     signed char *dst_i420_v_data = dst_i420_data + dst_i420_y_size + dst_i420_u_size;
-    //Convert camera sample to I420 with cropping, rotation and vertical flip
+    //
     libyuv::ConvertToI420((const uint8_t *) src_data, src_length,
-                          (uint8_t *) dst_i420_y_data, dst_width,
-                          (uint8_t *) dst_i420_u_data, dst_width >> 1,
-                          (uint8_t *) dst_i420_v_data, dst_width >> 1,
-                          left, top,
-                          width, height,
-                          dst_width, dst_height,
-                          libyuv::kRotate0, libyuv::FOURCC_I420);
+                              (uint8_t *) dst_i420_y_data, dst_width,
+                              (uint8_t *) dst_i420_u_data, dst_width >> 1,
+                              (uint8_t *) dst_i420_v_data, dst_width >> 1,
+                              left, top,
+                              width, height,
+                              dst_width, dst_height,
+                              (libyuv::RotationMode)degree
+                , libyuv::FOURCC_I420);
 }

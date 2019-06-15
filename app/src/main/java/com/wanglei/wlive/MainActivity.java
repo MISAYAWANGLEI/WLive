@@ -7,7 +7,6 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity
             actionBar.setDisplayShowTitleEnabled(false);
         }
         //
-        livePusher = new LivePusher(this,800_000, 25);
+        livePusher = new LivePusher(this,1000_000, 25);
         sensorControler = SensorControler.getInstance(this);
         sensorControler.setCameraFocusListener(this);
         PermissionGen.with(MainActivity.this)
@@ -125,7 +124,7 @@ public class MainActivity extends AppCompatActivity
 
 
     public void startLive(View view) {
-        livePusher.startLive("rtmp://localhost/myapp/mystream");
+        livePusher.startLive("rtmp://192.168.31.195/myapp/mystream");
     }
 
     public void stopLive(View view) {

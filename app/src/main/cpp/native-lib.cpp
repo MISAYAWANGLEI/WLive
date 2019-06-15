@@ -245,7 +245,8 @@ Java_com_wanglei_wlive_LivePusher_native_1pushVideo(JNIEnv *env, jobject instanc
         return;
     }
     jbyte *data = env->GetByteArrayElements(nv21_, NULL);
-    videoLive->encodeData(data,width,height,needRotate,degree);
+    jint src_length = env->GetArrayLength(nv21_);
+    videoLive->encodeData(data,src_length,width,height,needRotate,degree);
     env->ReleaseByteArrayElements(nv21_, data, 0);
 
 }
