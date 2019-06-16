@@ -105,9 +105,9 @@ void WYuvUtils::rotateI420(signed char *src_i420_data, int width,
         libyuv::I420Rotate((const uint8_t *) src_i420_y_data, width,
                            (const uint8_t *) src_i420_u_data, width >> 1,
                            (const uint8_t *) src_i420_v_data, width >> 1,
-                           (uint8_t *) dst_i420_y_data, width,
-                           (uint8_t *) dst_i420_u_data, width >> 1,
-                           (uint8_t *) dst_i420_v_data, width >> 1,
+                           (uint8_t *) dst_i420_y_data, height,
+                           (uint8_t *) dst_i420_u_data, height >> 1,
+                           (uint8_t *) dst_i420_v_data, height >> 1,
                            width, height,
                            (libyuv::RotationMode) degree);
     }

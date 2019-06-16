@@ -49,6 +49,8 @@ void VideoLive::openVideoEncodec(int width, int height, int fps, int bitrate) {
         x264_picture_clean(pic_in);
         DELETE(pic_in);
     }
+
+
     //打开x264编码器
     //x264编码器的属性
     x264_param_t param;
@@ -107,6 +109,14 @@ void VideoLive::encodeData(int8_t *data,int src_length,int width, int height,
     LOGE("视频开始编码");
     int8_t *dst_i420_data = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
     int8_t *dst_i420_data_rotate = (int8_t *) malloc(sizeof(int8_t) * width * height * 3 / 2);
+
+    if (!dst_i420_data || !dst_i420_data_rotate){
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+
+    memset(dst_i420_data,0,sizeof(int8_t) * width * height * 3 / 2);
+    memset(dst_i420_data_rotate,0,sizeof(int8_t) * width * height * 3 / 2);
     //NV21(I420SP)->I420P
     WYuvUtils::nv21ToI420(data,width,height,dst_i420_data);
 
@@ -166,8 +176,8 @@ void VideoLive::encodeData(int8_t *data,int src_length,int width, int height,
             pps = (uint8_t *) malloc((size_t) (pps_len + 1));
             memcpy(pps,pp_nal[i].p_payload+4, (size_t) pps_len);
             sendSpsPps(sps, pps, sps_len, pps_len);
-            //free(sps);
-            //free(pps);
+            free(sps);
+            free(pps);
         } else{//关键帧或者非关键帧
             sendFrame(pp_nal[i].i_type, pp_nal[i].p_payload, pp_nal[i].i_payload);
         }
